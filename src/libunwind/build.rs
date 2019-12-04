@@ -10,11 +10,14 @@ fn main() {
         // Build the unwinding from libunwind C/C++ source code.
         llvm_libunwind::compile();
     } else if target.contains("linux") {
-        if target.contains("musl") {
+        if target.contains("uclibc") {
+            println!("cargo:rustc-link-lib=gcc");
+        } else if target.contains("musl") {
             // linking for musl is handled in lib.rs
             llvm_libunwind::compile();
         } else if !target.contains("android") {
             println!("cargo:rustc-link-lib=gcc_s");
+
         }
     } else if target.contains("freebsd") {
         println!("cargo:rustc-link-lib=gcc_s");
