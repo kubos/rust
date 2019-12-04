@@ -7,7 +7,7 @@ fn main() {
             println!("cargo:rustc-link-lib=dl");
             println!("cargo:rustc-link-lib=log");
             println!("cargo:rustc-link-lib=gcc");
-        } else if !target.contains("musl") {
+        } else if !target.contains("musl") && !target.contains("uclibc") {
             println!("cargo:rustc-link-lib=dl");
             println!("cargo:rustc-link-lib=rt");
             println!("cargo:rustc-link-lib=pthread");
