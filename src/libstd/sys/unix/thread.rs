@@ -65,9 +65,11 @@ impl Thread {
             }
         };
 
+        println!("create thread");
         let ret = libc::pthread_create(&mut native, &attr, thread_start, &*p as *const _ as *mut _);
         assert_eq!(libc::pthread_attr_destroy(&mut attr), 0);
 
+        println!("thread created {}", ret);
         return if ret != 0 {
             Err(io::Error::from_raw_os_error(ret))
         } else {
@@ -430,7 +432,7 @@ pub mod guard {
 // storage.  We need that information to avoid blowing up when a small stack
 // is created in an application with big thread-local storage requirements.
 // See #6233 for rationale and details.
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(target_env = "uclibc")))]
 #[allow(deprecated)]
 fn min_stack_size(attr: *const libc::pthread_attr_t) -> usize {
     weak!(fn __pthread_get_minstack(*const libc::pthread_attr_t) -> libc::size_t);
@@ -443,7 +445,7 @@ fn min_stack_size(attr: *const libc::pthread_attr_t) -> usize {
 
 // No point in looking up __pthread_get_minstack() on non-glibc
 // platforms.
-#[cfg(all(not(target_os = "linux"), not(target_os = "netbsd")))]
+#[cfg(any(target_env = "uclibc", all(not(target_os = "linux"), not(target_os = "netbsd"))))]
 fn min_stack_size(_: *const libc::pthread_attr_t) -> usize {
     libc::PTHREAD_STACK_MIN
 }

@@ -41,6 +41,13 @@ impl Command {
         // Note that as soon as we're done with the fork there's no need to hold
         // a lock any more because the parent won't do anything and the child is
         // in its own process.
+        #[cfg(any(target_env = "uclibc"))]
+        let result = unsafe {
+            let _env_lock = sys::os::env_lock();
+            cvt(libc::vfork())?
+        };
+
+        #[cfg(not(any(target_env = "uclibc")))]
         let result = unsafe {
             let _env_lock = sys::os::env_lock();
             cvt(libc::fork())?
