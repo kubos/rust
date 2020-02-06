@@ -457,34 +457,26 @@ impl Builder {
     {
         let Builder { name, stack_size } = self;
 
-        println!("set stack size");
         let stack_size = stack_size.unwrap_or_else(thread::min_stack);
 
-        println!("set thread name and clone");
         let my_thread = Thread::new(name);
         let their_thread = my_thread.clone();
 
-        println!("Clone packet");
         let my_packet: Arc<UnsafeCell<Option<Result<T>>>> = Arc::new(UnsafeCell::new(None));
         let their_packet = my_packet.clone();
 
-        println!("setup main closure");
         let main = move || {
-            println!("in main = set thread name");
             if let Some(name) = their_thread.cname() {
                 imp::Thread::set_name(name);
             }
 
-            println!("in main = set guard");
             thread_info::set(imp::guard::current(), their_thread);
             let try_result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
                 crate::sys_common::backtrace::__rust_begin_short_backtrace(f)
             }));
-            println!("in main - capture result");
             *their_packet.get() = Some(try_result);
         };
 
-        println!("return join handle");
         Ok(JoinHandle(JoinInner {
             // `imp::Thread::new` takes a closure with a `'static` lifetime, since it's passed
             // through FFI or otherwise used with low-level threading primitives that have no
@@ -498,7 +490,6 @@ impl Builder {
             // exist after the thread has terminated, which is signaled by `Thread::join`
             // returning.
 
-            // Commented out to check dlsym
             native: Some(imp::Thread::new(
                 stack_size,
                 mem::transmute::<Box<dyn FnOnce() + 'a>, Box<dyn FnOnce() + 'static>>(Box::new(

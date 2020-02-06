@@ -65,11 +65,9 @@ impl Thread {
             }
         };
 
-        println!("create thread");
         let ret = libc::pthread_create(&mut native, &attr, thread_start, &*p as *const _ as *mut _);
         assert_eq!(libc::pthread_attr_destroy(&mut attr), 0);
 
-        println!("thread created {}", ret);
         return if ret != 0 {
             Err(io::Error::from_raw_os_error(ret))
         } else {
